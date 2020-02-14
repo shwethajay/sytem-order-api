@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="5e40c38d-c432-4a0f-bdb8-44da3c3de54f" >
+		<db:mssql-connection host="den1.mssql6.gear.host" user="customer4" password="Ff4B!!8P901h" />
+	</db:config>
+	<flow name="gerorderIdimplementationFlow" doc:id="3317062b-234c-454d-9dd3-20edeba31908" >
+		<db:select doc:name="Select" doc:id="4d6705a5-1ebb-478e-88b6-ac6cc3db7a26" config-ref="Database_Config">
+			<db:sql>SELECT        orderMaster.orderID, orderMaster.placementDate, orderMaster.customerName, orderMaster.customerID, orderItems.itemId, orderItems.itemName
+FROM            orderMaster INNER JOIN
+                         orderItems ON orderMaster.orderID = orderItems.orderId 
+                        where orderMaster.orderID = :ID
+                      </db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'ID': attributes.uriParams.'order-id'
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="3bef6b13-1ac7-4b06-9e4c-6364a2fe3a88" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	orderID: payload01.orderID as Number,
+	customerId: payload01.customerID default 0,
+	orderItem: [{
+		itemId: payload01.itemId as Number default 0,
+		itemName: payload01.itemName default ""
+	}]
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="patchimplementationFlow" doc:id="456e6288-a6ad-485f-9741-3e471d12af87" >
+		<db:update doc:name="Update" doc:id="ed5f6c38-66e8-4ac6-8214-09ea756deddf" config-ref="Database_Config">
+			<db:sql >UPDATE orderMaster
+SET customerID = :custID, status = :status
+WHERE orderID = :ID;</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'custID':payload.customerID ,
+	'status':payload.status as String,
+	'ID':attributes.uriParams.'order-id'
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="a92f7e90-ba18-47bf-bb33-17a71b905fb6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.affectedRows
+	
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="fa998af9-cd8f-41af-ba6c-4c8927b5f659" message="#[payload]"/>
+	</flow>
+	<flow name="getCustIDimplementationFlow" doc:id="6e73c35e-b38e-46dc-8fbe-b3bd92987ba8" >
+		<db:select doc:name="Select" doc:id="d99754fe-fb39-4830-993c-98d7d62debe2" config-ref="Database_Config">
+			<db:sql >SELECT        orderMaster.orderID,orderMaster.placementDate, orderMaster.customerName, orderMaster.status, orderMaster.customerID, orderMaster.totalPrice, orderItems.itemId, orderItems.itemCount, orderItems.itemName, 
+                         orderItems.orderItemId
+FROM            orderMaster INNER JOIN
+                         orderItems ON orderMaster.orderID = orderItems.orderId where orderMaster.customerID= :customeID</db:sql>
+			<db:input-parameters ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+	'customeID':attributes.queryParams.'customerId' as Number {format:""}
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="27ef93aa-b6b6-408b-91d9-6c87d933dee2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	orderID: payload01.orderID as Number default 0,
+	placementDate: payload01.placementDate default "",
+	customerId: payload01.customerID default 0,
+	status: payload01.status default "",
+	orderItem: [{
+		itemId: payload01.itemId as Number default 0,
+		itemName: payload01.itemName default ""
+	}]
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

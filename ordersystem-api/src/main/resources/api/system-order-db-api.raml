@@ -1,0 +1,81 @@
+#%RAML 1.0
+title: System Order API
+mediaType:
+  - application/json
+version: 1.0.0
+protocols:
+  - HTTP
+
+types:
+  orderType: !include type/orderType.raml
+  errorResponse: !include type/errorResponseType.raml
+  successResponse: !include type/successResponse.raml
+
+traits: 
+ logging: !include traits/logging.raml
+ clientId-enforcement: !include traits/security.raml
+ errorTraits: !include traits/error-trait.raml
+  
+
+/orders:
+  get:
+    displayName: Returns a order details
+    description: get result of order corresponding to customerId
+    is: [logging, clientId-enforcement,errorTraits]
+    queryParameters:
+      customerId: string
+    responses:
+      200:
+        body:
+          application/json:
+            type: orderType[]
+            example: !include example/orderExampleArray.raml
+  post:
+    displayName: Create new Order
+    description: Create new Order
+    is: [logging, clientId-enforcement,errorTraits]
+    body:
+      application/json:
+        type: orderType
+        example: !include example/orderExample.raml        
+    responses:
+      201:
+        body:
+          application/json:
+            type: successResponse
+            example: |
+              {"message": "Successfully Created"}
+     
+  /{order-id}:
+   uriParameters:
+    order-id:
+      description: unique Item Id to trigger the operation
+      example: 1
+      type: number
+      format: int
+   get:
+      displayName: Returns a order details
+      description: get result of order corresponding to orderId
+      is: [logging, clientId-enforcement,errorTraits]      
+      responses:
+        200:
+          body:
+            application/json:
+              type: orderType
+              example: !include example/orderExample.raml
+   patch:
+      displayName: Update Order Status
+      description: Update Order Status corresponding to orderId
+      is: [logging, clientId-enforcement,errorTraits]
+      body:
+        application/json:
+          type: object
+          properties:
+            customerId: string
+            status: string
+      responses:
+        204:
+   
+    
+                
+    

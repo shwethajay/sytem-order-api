@@ -1,0 +1,56 @@
+#%RAML 1.0 DataType
+
+type: object
+properties:
+      orderID:
+        description: unique Id corresponds to order
+        example: 1
+        type: number
+        format: int
+      placementDate:
+        description: Date of order placement
+        example: 2019-12-12
+        type: date-only
+      status:
+        description: Order Status
+        enum:
+          - created
+          - awaitingShipment
+          - shipped
+          - completed
+        example: created
+        type: string
+      customerId:
+        description: Customer Id
+        example: 1
+        type: number
+      totalPrice:
+        description: Total Price of the Order
+        example: 23.00
+        type: number
+      orderItem: 
+        description: Items in order
+        type: array
+        items:
+           type: object
+           properties:
+            itemId:
+              description: Item Id
+              example: 1
+              type: number
+            itemName:
+              description: item Name
+              example: test
+              type: string
+            price:
+              description: price of each unit
+              example: 23.00
+              type: number
+            quantity:
+              description: Quantity for this item
+              example: 4
+              type: number
+
+
+
+        

@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="responseOrderJson" format="json">
+      <types:shape format="weave" example="api/example/orderExampleArray.raml"><![CDATA[%dw 2.0
+
+type responseOrderJson = Array<{|  orderID: Number {"typeId": "int"},   placementDate: String,   customerId: Number {"typeId": "int"},   status: String,   totalPrice: Number {"typeId": "int"},   orderItem: Array<{|    itemId: Number {"typeId": "int"},     itemName: String,     price: Number {"typeId": "double"},     quantity: Number {"typeId": "int"}  |}>
+|}> {"example": "[{\\\"orderID\\\":1,\\\"placementDate\\\":\\\"2019-12-12\\\",\\\"customerId\\\":1,\\\"status\\\":\\\"created\\\",\\\"totalPrice\\\":92,\\\"orderItem\\\":[{\\\"itemId\\\":1,\\\"itemName\\\":\\\"testItem\\\",\\\"price\\\":23.00,\\\"quantity\\\":4}]}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="responseOrder" format="json">
+      <types:shape format="weave" example="api/example/orderExample.raml"><![CDATA[%dw 2.0
+
+type responseOrder = {|
+  orderID: Number {"typeId": "int"}, 
+  placementDate: String, 
+  customerId: Number {"typeId": "int"}, 
+  status: String, 
+  totalPrice: Number {"typeId": "int"}, 
+  orderItem: Array<{|    itemId: Number {"typeId": "int"},     itemName: String,     price: Number {"typeId": "double"},     quantity: Number {"typeId": "int"}  |}>
+|} {"example": "{\\\"orderID\\\":1,\\\"placementDate\\\":\\\"2019-12-12\\\",\\\"customerId\\\":1,\\\"status\\\":\\\"created\\\",\\\"totalPrice\\\":92,\\\"orderItem\\\":[{\\\"itemId\\\":1,\\\"itemName\\\":\\\"testItem\\\",\\\"price\\\":23.00,\\\"quantity\\\":4}]}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="responseMessage" format="java">
+      <types:shape format="raml"><![CDATA[#%RAML 1.0 DataType
+type: number]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#3bef6b13-1ac7-4b06-9e4c-6364a2fe3a88">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="responseOrderJson"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#a92f7e90-ba18-47bf-bb33-17a71b905fb6"/>
+  <types:enrichment select="#27ef93aa-b6b6-408b-91d9-6c87d933dee2">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="responseOrderJson"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>
